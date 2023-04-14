@@ -42,11 +42,10 @@ PRIVATE void    kb_ack();
 /*======================================================================*
                             keyboard_handler
  *======================================================================*/
-PUBLIC void keyboard_handler(int irq)
-{
+PUBLIC void keyboard_handler(int irq) {
 	u8 scan_code = in_byte(KB_DATA);
 
-	if (kb_in.count < KB_IN_BYTES) {
+	if(kb_in.count < KB_IN_BYTES) {
 		*(kb_in.p_head) = scan_code;
 		kb_in.p_head++;
 		if (kb_in.p_head == kb_in.buf + KB_IN_BYTES) {
@@ -60,8 +59,7 @@ PUBLIC void keyboard_handler(int irq)
 /*======================================================================*
                            init_keyboard
 *======================================================================*/
-PUBLIC void init_keyboard()
-{
+PUBLIC void init_keyboard() {
 	kb_in.count = 0;
 	kb_in.p_head = kb_in.p_tail = kb_in.buf;
 
@@ -75,26 +73,25 @@ PUBLIC void init_keyboard()
 
 	set_leds();
 
-        put_irq_handler(KEYBOARD_IRQ, keyboard_handler);/*设定键盘中断处理程序*/
-        enable_irq(KEYBOARD_IRQ);                       /*开键盘中断*/
+    put_irq_handler(KEYBOARD_IRQ, keyboard_handler);  /* 设定键盘中断处理程序 */
+    enable_irq(KEYBOARD_IRQ);                         /* 开键盘中断 */
 }
 
 
 /*======================================================================*
                            keyboard_read
 *======================================================================*/
-PUBLIC void keyboard_read(TTY* p_tty)
-{
-	u8	scan_code;
-	char	output[2];
-	int	make;	/* 1: make;  0: break. */
+PUBLIC void keyboard_read(TTY* p_tty) {
+	u8   scan_code;
+	char output[2];
+	int	 make;      /* 1: make;  0: break. */
 
-	u32	key = 0;/* 用一个整型来表示一个键。比如，如果 Home 被按下，
-			 * 则 key 值将为定义在 keyboard.h 中的 'HOME'。
-			 */
-	u32*	keyrow;	/* 指向 keymap[] 的某一行 */
+	u32  key = 0;   /* 用一个整型来表示一个键。比如，如果 Home 被按下，
+			         * 则 key 值将为定义在 keyboard.h 中的 'HOME'。
+			         */
+	u32* keyrow;	/* 指向 keymap[] 的某一行 */
 
-	if(kb_in.count > 0){
+	if(kb_in.count > 0) {  // 检查缓冲区中是否有数据
 		code_with_E0 = 0;
 
 		scan_code = get_byte_from_kbuf();
@@ -296,22 +293,21 @@ PUBLIC void keyboard_read(TTY* p_tty)
 /*======================================================================*
 			    get_byte_from_kbuf
  *======================================================================*/
-PRIVATE u8 get_byte_from_kbuf()       /* 从键盘缓冲区中读取下一个字节 */
-{
-        u8 scan_code;
+PRIVATE u8 get_byte_from_kbuf() {  /* 从键盘缓冲区中读取下一个字节 */
+    u8 scan_code;
 
-        while (kb_in.count <= 0) {}   /* 等待下一个字节到来 */
+    while (kb_in.count <= 0) {}    /* 等待下一个字节到来 */
 
-        disable_int();
-        scan_code = *(kb_in.p_tail);
-        kb_in.p_tail++;
-        if (kb_in.p_tail == kb_in.buf + KB_IN_BYTES) {
-                kb_in.p_tail = kb_in.buf;
-        }
-        kb_in.count--;
-        enable_int();
+    disable_int();
+    scan_code = *(kb_in.p_tail);
+    kb_in.p_tail++;
+    if (kb_in.p_tail == kb_in.buf + KB_IN_BYTES) {
+        kb_in.p_tail = kb_in.buf;
+    }
+    kb_in.count--;
+    enable_int();
 
-	return scan_code;
+    return scan_code;
 }
 
 /*======================================================================*

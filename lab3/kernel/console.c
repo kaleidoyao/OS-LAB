@@ -54,7 +54,7 @@ PUBLIC void init_screen(TTY* p_tty)
 		out_char(p_tty->p_console, '#');
 	}
 
-	set_cursor(p_tty->p_console->cursor);
+	clean_screen(p_tty->p_console);
 }
 
 
@@ -110,10 +110,9 @@ PUBLIC void out_char(CONSOLE* p_con, char ch)
 /*======================================================================*
                            flush
 *======================================================================*/
-PRIVATE void flush(CONSOLE* p_con)
-{
-        set_cursor(p_con->cursor);
-        set_video_start_addr(p_con->current_start_addr);
+PRIVATE void flush(CONSOLE* p_con) {
+    set_cursor(p_con->cursor);
+    set_video_start_addr(p_con->current_start_addr);
 }
 
 /*======================================================================*
@@ -189,3 +188,17 @@ PUBLIC void scroll_screen(CONSOLE* p_con, int direction)
 	set_cursor(p_con->cursor);
 }
 
+
+/*======================================================================*
+			   clean_screen
+ *======================================================================*/
+PUBLIC void clean_screen(CONSOLE* p_con) {
+	u8 *p_vmem = (u8 *)(V_MEM_BASE);
+	for(int i=p_con->original_addr; i<p_con->cursor; i++) {
+		*p_vmem++ = ' ';
+		*p_vmem++ = DEFAULT_CHAR_COLOR;
+	}
+	// 当前光标的位置 = 当前显示到的位置 = 当前显存的位置
+	p_con->cursor = p_con->current_start_addr = p_con->original_addr;
+    flush(p_con);
+}
