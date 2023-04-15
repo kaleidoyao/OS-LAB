@@ -25,7 +25,7 @@
 PRIVATE void set_cursor(unsigned int position);
 PRIVATE void set_video_start_addr(u32 addr);
 PRIVATE void flush(CONSOLE* p_con);
-PRIVATE void clean_screen(CONSOLE* p_con);
+PUBLIC void clean_screen(CONSOLE* p_con);
 PRIVATE void push_pos(CONSOLE* p_con, int pos);
 PRIVATE int  pop_pos(CONSOLE* p_con);
 
@@ -207,7 +207,7 @@ PUBLIC void scroll_screen(CONSOLE* p_con, int direction)
 /*======================================================================*
 			   clean_screen
  *======================================================================*/
-PRIVATE void clean_screen(CONSOLE* p_con) {
+PUBLIC void clean_screen(CONSOLE* p_con) {
 	u8 *p_vmem = (u8 *)(V_MEM_BASE);
 	for(int i=p_con->original_addr; i<p_con->cursor; i++) {
 		*p_vmem++ = ' ';

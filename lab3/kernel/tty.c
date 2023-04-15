@@ -44,6 +44,21 @@ PUBLIC void task_tty() {
 	}
 }
 
+
+/*======================================================================*
+                           task_clean
+ *======================================================================*/
+PUBLIC void task_clean() {	
+	while(1) {
+		milli_delay(120000);
+		for(TTY* p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
+			clean_screen(p_tty->p_console);
+		}
+		select_console(0);
+	}
+}
+
+
 /*======================================================================*
 			   init_tty
  *======================================================================*/
@@ -68,8 +83,10 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
         int raw_code = key & MASK_RAW;
         switch(raw_code) {
 			case TAB:
-				put_key(p_tty, '\t');
+				select_console(1);
 				break;
+			// 	put_key(p_tty, '\t');
+			// 	break;
             case ENTER:
 				put_key(p_tty, '\n');
 				break;
