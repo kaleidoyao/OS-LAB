@@ -25,12 +25,14 @@
 PRIVATE void set_cursor(unsigned int position);
 PRIVATE void set_video_start_addr(u32 addr);
 PRIVATE void flush(CONSOLE* p_con);
+PRIVATE void clean_screen(CONSOLE* p_con);
+PRIVATE void push_pos(CONSOLE* p_con, int pos);
+PRIVATE int  pop_pos(CONSOLE* p_con);
 
 /*======================================================================*
 			   init_screen
  *======================================================================*/
-PUBLIC void init_screen(TTY* p_tty)
-{
+PUBLIC void init_screen(TTY* p_tty) {
 	int nr_tty = p_tty - tty_table;
 	p_tty->p_console = console_table + nr_tty;
 
@@ -55,6 +57,7 @@ PUBLIC void init_screen(TTY* p_tty)
 	}
 
 	clean_screen(p_tty->p_console);
+	p_tty->p_console->pos_stack.index = 0;
 }
 
 
@@ -70,34 +73,46 @@ PUBLIC int is_current_console(CONSOLE* p_con)
 /*======================================================================*
 			   out_char
  *======================================================================*/
-PUBLIC void out_char(CONSOLE* p_con, char ch)
-{
+PUBLIC void out_char(CONSOLE* p_con, char ch) {
 	u8* p_vmem = (u8*)(V_MEM_BASE + p_con->cursor * 2);
 
 	switch(ch) {
-	case '\n':
-		if (p_con->cursor < p_con->original_addr +
-		    p_con->v_mem_limit - SCREEN_WIDTH) {
-			p_con->cursor = p_con->original_addr + SCREEN_WIDTH * 
-				((p_con->cursor - p_con->original_addr) /
-				 SCREEN_WIDTH + 1);
+		case '\t':
+			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - TAB_WIDTH) {
+				for(int i=0; i<TAB_WIDTH; i++) {
+					*p_vmem++ = ' ';
+					*p_vmem++ = DEFAULT_CHAR_COLOR;
+				}
+				push_pos(p_con, p_con->cursor);
+				p_con->cursor += TAB_WIDTH;  // 调整光标位置
+			}
+			break;
+		case '\n':
+			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - SCREEN_WIDTH) {
+				push_pos(p_con, p_con->cursor);
+				p_con->cursor = p_con->original_addr + SCREEN_WIDTH * ((p_con->cursor - p_con->original_addr) / SCREEN_WIDTH + 1);
+			}
+			break;
+		case '\b':
+		{
+			if(p_con->cursor > p_con->original_addr) {
+				int prev_pos = p_con->cursor;    // 原先光标的位置
+				p_con->cursor = pop_pos(p_con);  // 删除后光标位置
+				for(int i=1; i<prev_pos-p_con->cursor+1; i++) { // 使用空格填充
+					*(p_vmem-2*i) = ' ';
+					*(p_vmem-2*i+1) = DEFAULT_CHAR_COLOR;
+				}
+			}
+			break;
 		}
-		break;
-	case '\b':
-		if (p_con->cursor > p_con->original_addr) {
-			p_con->cursor--;
-			*(p_vmem-2) = ' ';
-			*(p_vmem-1) = DEFAULT_CHAR_COLOR;
-		}
-		break;
-	default:
-		if (p_con->cursor <
-		    p_con->original_addr + p_con->v_mem_limit - 1) {
-			*p_vmem++ = ch;
-			*p_vmem++ = DEFAULT_CHAR_COLOR;
-			p_con->cursor++;
-		}
-		break;
+		default:
+			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - 1) {
+				*p_vmem++ = ch;
+				*p_vmem++ = DEFAULT_CHAR_COLOR;
+				push_pos(p_con, p_con->cursor);
+				p_con->cursor++;
+			}
+			break;
 	}
 
 	while (p_con->cursor >= p_con->current_start_addr + SCREEN_SIZE) {
@@ -192,7 +207,7 @@ PUBLIC void scroll_screen(CONSOLE* p_con, int direction)
 /*======================================================================*
 			   clean_screen
  *======================================================================*/
-PUBLIC void clean_screen(CONSOLE* p_con) {
+PRIVATE void clean_screen(CONSOLE* p_con) {
 	u8 *p_vmem = (u8 *)(V_MEM_BASE);
 	for(int i=p_con->original_addr; i<p_con->cursor; i++) {
 		*p_vmem++ = ' ';
@@ -200,5 +215,14 @@ PUBLIC void clean_screen(CONSOLE* p_con) {
 	}
 	// 当前光标的位置 = 当前显示到的位置 = 当前显存的位置
 	p_con->cursor = p_con->current_start_addr = p_con->original_addr;
-    flush(p_con);
+	flush(p_con);
+}
+
+
+PRIVATE void push_pos(CONSOLE* p_con, int pos) {
+	p_con->pos_stack.data[p_con->pos_stack.index++] = pos;
+}
+
+PRIVATE int pop_pos(CONSOLE* p_con) {
+	return p_con->pos_stack.data[--p_con->pos_stack.index];
 }

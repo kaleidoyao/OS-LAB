@@ -27,18 +27,17 @@ PRIVATE void put_key(TTY* p_tty, u32 key);
 /*======================================================================*
                            task_tty
  *======================================================================*/
-PUBLIC void task_tty()
-{
-	TTY*	p_tty;
+PUBLIC void task_tty() {
+	TTY* p_tty;
 
 	init_keyboard();
 
-	for (p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
+	for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
 		init_tty(p_tty);
 	}
 	select_console(0);
-	while (1) {
-		for (p_tty=TTY_FIRST;p_tty<TTY_END;p_tty++) {
+	while(1) {
+		for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {  // 使用循环处理每一个tty的读和写操作
 			tty_do_read(p_tty);
 			tty_do_write(p_tty);
 		}
@@ -68,6 +67,9 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
     else {
         int raw_code = key & MASK_RAW;
         switch(raw_code) {
+			case TAB:
+				put_key(p_tty, '\t');
+				break;
             case ENTER:
 				put_key(p_tty, '\n');
 				break;
@@ -110,9 +112,8 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
 /*======================================================================*
 			      put_key
 *======================================================================*/
-PRIVATE void put_key(TTY* p_tty, u32 key)
-{
-	if (p_tty->inbuf_count < TTY_IN_BYTES) {
+PRIVATE void put_key(TTY* p_tty, u32 key) {  // 将key写入TTY的缓冲区
+	if(p_tty->inbuf_count < TTY_IN_BYTES) {
 		*(p_tty->p_inbuf_head) = key;
 		p_tty->p_inbuf_head++;
 		if (p_tty->p_inbuf_head == p_tty->in_buf + TTY_IN_BYTES) {

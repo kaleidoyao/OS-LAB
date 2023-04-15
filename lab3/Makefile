@@ -60,6 +60,9 @@ buildimg :
 	sudo cp -fv kernel.bin /media/
 	sudo umount /media/
 
+run : image
+	bochs -f bochsrc
+
 boot/boot.bin : boot/boot.asm boot/include/load.inc boot/include/fat12hdr.inc
 	$(ASM) $(ASMBFLAGS) -o $@ $<
 

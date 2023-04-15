@@ -31,10 +31,10 @@
 					   or in the list below */
 
 /* Special keys */
-#define ESC		(0x01 + FLAG_EXT)	/* Esc		*/
-#define TAB		(0x02 + FLAG_EXT)	/* Tab		*/
-#define ENTER		(0x03 + FLAG_EXT)	/* Enter	*/
-#define BACKSPACE	(0x04 + FLAG_EXT)	/* BackSpace	*/
+#define ESC       (0x01 + FLAG_EXT)  /* Esc       */
+#define TAB       (0x02 + FLAG_EXT)  /* Tab       */
+#define ENTER     (0x03 + FLAG_EXT)  /* Enter     */
+#define BACKSPACE (0x04 + FLAG_EXT)  /* BackSpace */
 
 #define GUI_L		(0x05 + FLAG_EXT)	/* L GUI	*/
 #define GUI_R		(0x06 + FLAG_EXT)	/* R GUI	*/
