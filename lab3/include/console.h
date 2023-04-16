@@ -16,6 +16,7 @@
 #define TAB_WIDTH     4
 
 #define DEFAULT_CHAR_COLOR	0x07	/* 0000 0111 黑底白字 */
+#define RED_CHAR_COLOR		0x04	/* 0000 0100 黑底红字 */
 
 /* 记录光标位置 */
 typedef struct cursor_pos_stack {
@@ -29,6 +30,7 @@ typedef struct s_console {
 	unsigned int original_addr;	      /* 当前控制台对应显存位置 */
 	unsigned int v_mem_limit;         /* 当前控制台占的显存大小 */
 	unsigned int cursor;              /* 当前光标位置 */
+	unsigned int search_pos;          /* 搜索的位置 */
 	POSSTACK pos_stack;               /* 光标位置栈 */
 }CONSOLE;
 

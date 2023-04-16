@@ -26,12 +26,12 @@ EXTERN	PROCESS*	p_proc_ready;
 
 EXTERN	int		nr_current_console;
 
-extern	PROCESS		proc_table[];
-extern	char		task_stack[];
-extern  TASK            task_table[];
-extern  TASK            user_proc_table[];
-extern	irq_handler	irq_table[];
-extern	TTY		tty_table[];
-extern  CONSOLE         console_table[];
+extern  PROCESS      proc_table[];
+extern  char         task_stack[];
+extern  TASK         task_table[];
+extern  TASK         user_proc_table[];
+extern  irq_handler  irq_table[];
+extern  TTY          tty_table[];
+extern  CONSOLE      console_table[];
 
-
+extern  int  mode;  // 记录当前处于哪种模式

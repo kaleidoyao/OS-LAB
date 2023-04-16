@@ -20,8 +20,7 @@
 PUBLIC	PROCESS	proc_table[NR_TASKS + NR_PROCS];
 
 PUBLIC	TASK	task_table[NR_TASKS] = {
-    {task_tty, STACK_SIZE_TTY, "tty"},
-    {task_clean, STACK_SIZE_CLEAN, "clean"}};
+    {task_tty, STACK_SIZE_TTY, "tty"}};
 
 PUBLIC  TASK    user_proc_table[NR_PROCS] = {
 	{TestA, STACK_SIZE_TESTA, "TestA"},
@@ -37,3 +36,4 @@ PUBLIC	irq_handler	irq_table[NR_IRQ];
 
 PUBLIC	system_call	sys_call_table[NR_SYS_CALL] = {sys_get_ticks};
 
+PUBLIC  int  mode;

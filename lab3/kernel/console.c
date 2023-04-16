@@ -25,9 +25,10 @@
 PRIVATE void set_cursor(unsigned int position);
 PRIVATE void set_video_start_addr(u32 addr);
 PRIVATE void flush(CONSOLE* p_con);
-PUBLIC void clean_screen(CONSOLE* p_con);
+PUBLIC  void clean_screen(CONSOLE* p_con);
 PRIVATE void push_pos(CONSOLE* p_con, int pos);
 PRIVATE int  pop_pos(CONSOLE* p_con);
+PUBLIC  void exit_search(CONSOLE* p_con);
 
 /*======================================================================*
 			   init_screen
@@ -108,7 +109,8 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 		default:
 			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - 1) {
 				*p_vmem++ = ch;
-				*p_vmem++ = DEFAULT_CHAR_COLOR;
+				if(mode == NORMAL_MODE) *p_vmem++ = DEFAULT_CHAR_COLOR;
+				else *p_vmem++ = RED_CHAR_COLOR;
 				push_pos(p_con, p_con->cursor);
 				p_con->cursor++;
 			}
@@ -208,7 +210,7 @@ PUBLIC void scroll_screen(CONSOLE* p_con, int direction)
 			   clean_screen
  *======================================================================*/
 PUBLIC void clean_screen(CONSOLE* p_con) {
-	u8 *p_vmem = (u8 *)(V_MEM_BASE);
+	u8 *p_vmem = (u8 *)(V_MEM_BASE + p_con->original_addr * 2);
 	for(int i=p_con->original_addr; i<p_con->cursor; i++) {
 		*p_vmem++ = ' ';
 		*p_vmem++ = DEFAULT_CHAR_COLOR;
@@ -225,4 +227,47 @@ PRIVATE void push_pos(CONSOLE* p_con, int pos) {
 
 PRIVATE int pop_pos(CONSOLE* p_con) {
 	return p_con->pos_stack.data[--p_con->pos_stack.index];
+}
+
+
+/*======================================================================*
+			   					search
+ *======================================================================*/
+PUBLIC void search(CONSOLE* p_con) {
+	int key_len = p_con->cursor - p_con->search_pos;
+	int begin, end;
+	for(int i=p_con->original_addr*2; i<p_con->search_pos*2-key_len; i+=2) {
+		int found = 1;
+		begin = end = i;
+		for(int j=p_con->search_pos*2; j<p_con->cursor*2; j+=2) {
+			if(*(u8*)(V_MEM_BASE + end) == *(u8*)(V_MEM_BASE + j)) {
+				end += 2;
+			}
+			else {
+				found = 0;
+				break;
+			}
+		}
+		if(found) {
+			for(int i=begin; i<end; i+=2) {
+				*(u8*)(V_MEM_BASE + i + 1) = RED_CHAR_COLOR;
+			}
+		}
+	}
+}
+
+PUBLIC void exit_search(CONSOLE* p_con) {
+    u8* p_vmem = (u8*)(V_MEM_BASE + p_con->original_addr * 2);
+    // 删除关键词
+    for(int i=p_con->search_pos*2; i<p_con->cursor*2; i+=2) { 
+        *(u8*)(V_MEM_BASE + i) = ' ';
+        *(u8*)(V_MEM_BASE + i + 1) = DEFAULT_CHAR_COLOR;
+    }
+    // 文本恢复白色
+    for(int i=p_con->original_addr*2; i<p_con->search_pos*2; i+=2) {
+        *(u8*)(V_MEM_BASE + i + 1) = DEFAULT_CHAR_COLOR;
+    }
+    // 更新光标位置
+    p_con->cursor = p_con->search_pos;
+    flush(p_con);
 }

@@ -31,30 +31,28 @@ PUBLIC void task_tty() {
 	TTY* p_tty;
 
 	init_keyboard();
+	mode = NORMAL_MODE;  // 初始化为普通模式
 
 	for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
 		init_tty(p_tty);
 	}
 	select_console(0);
+
+	int time = get_ticks();
 	while(1) {
 		for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {  // 使用循环处理每一个tty的读和写操作
+			if(mode == NORMAL_MODE) {
+				if(get_ticks() - time > 100 * HZ) {
+					for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
+						clean_screen(p_tty->p_console);
+					}
+					// select_console(0);
+					time = get_ticks();
+				}
+			}
 			tty_do_read(p_tty);
 			tty_do_write(p_tty);
 		}
-	}
-}
-
-
-/*======================================================================*
-                           task_clean
- *======================================================================*/
-PUBLIC void task_clean() {	
-	while(1) {
-		milli_delay(120000);
-		for(TTY* p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
-			clean_screen(p_tty->p_console);
-		}
-		select_console(0);
 	}
 }
 
@@ -82,13 +80,27 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
     else {
         int raw_code = key & MASK_RAW;
         switch(raw_code) {
-			case TAB:
-				select_console(1);
+			case ESC:
+				if(mode == 0) {
+					mode = SEARCH_MODE;
+					p_tty->p_console->search_pos = p_tty->p_console->cursor;
+				}
+				else {
+					mode = NORMAL_MODE;
+					exit_search(p_tty->p_console);
+				}
 				break;
-			// 	put_key(p_tty, '\t');
-			// 	break;
+			case TAB:
+				put_key(p_tty, '\t');
+				break;
             case ENTER:
-				put_key(p_tty, '\n');
+				if(mode == NORMAL_MODE) {
+					put_key(p_tty, '\n');
+				}
+				else if(mode == SEARCH_MODE) {
+					search(p_tty->p_console);
+					mode = MASK_MODE;
+				}
 				break;
             case BACKSPACE:
 				put_key(p_tty, '\b');

@@ -99,4 +99,9 @@
 /* system call */
 #define NR_SYS_CALL     1
 
+// mode
+#define NORMAL_MODE 0
+#define SEARCH_MODE 1
+#define MASK_MODE   2
+
 #endif /* _ORANGES_CONST_H_ */

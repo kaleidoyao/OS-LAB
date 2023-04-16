@@ -49,18 +49,16 @@ typedef struct s_task {
 
 
 /* Number of tasks & procs */
-#define NR_TASKS 2  // NR_TASKS定义了最大允许进程数
+#define NR_TASKS 1  // NR_TASKS定义了最大允许进程数
 #define NR_PROCS 3
 
 /* stacks of tasks */
 #define STACK_SIZE_TTY		0x8000
-#define STACK_SIZE_CLEAN	0x8000
 #define STACK_SIZE_TESTA	0x8000
 #define STACK_SIZE_TESTB	0x8000
 #define STACK_SIZE_TESTC	0x8000
 
 #define STACK_SIZE_TOTAL	(STACK_SIZE_TTY + \
-				STACK_SIZE_CLEAN + \
 				STACK_SIZE_TESTA + \
 				STACK_SIZE_TESTB + \
 				STACK_SIZE_TESTC)
