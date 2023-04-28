@@ -46,9 +46,11 @@ PUBLIC void task_tty() {
 					for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
 						clean_screen(p_tty->p_console);
 					}
-					// select_console(0);
 					time = get_ticks();
 				}
+			}
+			else {
+				time = get_ticks();  // 防止退出查找模式时瞬间清屏
 			}
 			tty_do_read(p_tty);
 			tty_do_write(p_tty);
@@ -73,19 +75,37 @@ PRIVATE void init_tty(TTY* p_tty)
  *======================================================================*/
 PUBLIC void in_process(TTY* p_tty, u32 key) {
     char output[2] = {'\0', '\0'};
+	int raw_code = key & MASK_RAW;
+
+	if(mode == MASK_MODE) {  // 屏蔽模式下
+		if(raw_code == ESC) {
+			mode = NORMAL_MODE;
+			exit_search(p_tty->p_console);
+		}
+		return;
+	}
 
     if(!(key & FLAG_EXT)) {  // 表明当前字符是一个可打印字符
-		put_key(p_tty, key);
+		if((key & FLAG_CTRL_L) || (key & FLAG_CTRL_R)) {  // 判断是不是control + z
+			char ch = key;
+			if(ch == 'z' || ch == 'Z') {
+				int prev_mode = mode;
+				mode = UNDO_MODE;
+				undo(p_tty->p_console);
+				mode = prev_mode;
+			}
+		}
+		else put_key(p_tty, key);
     }
     else {
         int raw_code = key & MASK_RAW;
         switch(raw_code) {
 			case ESC:
-				if(mode == 0) {
+				if(mode == NORMAL_MODE) {
 					mode = SEARCH_MODE;
 					p_tty->p_console->search_pos = p_tty->p_console->cursor;
 				}
-				else {
+				else if(mode == SEARCH_MODE) {
 					mode = NORMAL_MODE;
 					exit_search(p_tty->p_console);
 				}
@@ -98,8 +118,8 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
 					put_key(p_tty, '\n');
 				}
 				else if(mode == SEARCH_MODE) {
-					search(p_tty->p_console);
 					mode = MASK_MODE;
+					search(p_tty->p_console);
 				}
 				break;
             case BACKSPACE:
@@ -180,5 +200,4 @@ PRIVATE void tty_do_write(TTY* p_tty)
 		out_char(p_tty->p_console, ch);
 	}
 }
-
 

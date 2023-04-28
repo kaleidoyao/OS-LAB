@@ -103,5 +103,6 @@
 #define NORMAL_MODE 0
 #define SEARCH_MODE 1
 #define MASK_MODE   2
+#define UNDO_MODE   3
 
 #endif /* _ORANGES_CONST_H_ */

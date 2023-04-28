@@ -28,6 +28,10 @@ PRIVATE void flush(CONSOLE* p_con);
 PUBLIC  void clean_screen(CONSOLE* p_con);
 PRIVATE void push_pos(CONSOLE* p_con, int pos);
 PRIVATE int  pop_pos(CONSOLE* p_con);
+PRIVATE void push_ch(CONSOLE* p_con, char ch);
+PRIVATE char pop_ch(CONSOLE* p_con);
+PRIVATE void push_action(CONSOLE* p_con, char action, char ch);
+PRIVATE char pop_action(CONSOLE* p_con);
 PUBLIC  void exit_search(CONSOLE* p_con);
 
 /*======================================================================*
@@ -103,6 +107,8 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 					*(p_vmem-2*i) = ' ';
 					*(p_vmem-2*i+1) = DEFAULT_CHAR_COLOR;
 				}
+				char ch = pop_ch(p_con);
+				if(mode != UNDO_MODE) push_action(p_con, ch, ch);
 			}
 			break;
 		}
@@ -110,8 +116,10 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - 1) {
 				*p_vmem++ = ch;
 				if(mode == NORMAL_MODE) *p_vmem++ = DEFAULT_CHAR_COLOR;
-				else *p_vmem++ = RED_CHAR_COLOR;
+				else if(mode == SEARCH_MODE) *p_vmem++ = RED_CHAR_COLOR;
 				push_pos(p_con, p_con->cursor);
+				push_ch(p_con, ch);
+				push_action(p_con, '\b', '\b');
 				p_con->cursor++;
 			}
 			break;
@@ -229,6 +237,24 @@ PRIVATE int pop_pos(CONSOLE* p_con) {
 	return p_con->pos_stack.data[--p_con->pos_stack.index];
 }
 
+PRIVATE void push_ch(CONSOLE* p_con, char ch) {
+	p_con->ch_stack.data[p_con->ch_stack.index++] = ch;
+}
+
+PRIVATE char pop_ch(CONSOLE* p_con) {
+	return p_con->ch_stack.data[--p_con->ch_stack.index];
+}
+
+PRIVATE void push_action(CONSOLE* p_con, char action, char ch) {
+	p_con->action_stack.data[p_con->action_stack.index] = action;
+	p_con->action_stack.ch[p_con->action_stack.index] = ch;
+	p_con->action_stack.index++;
+}
+
+PRIVATE char pop_action(CONSOLE* p_con) {
+	return p_con->action_stack.data[--p_con->action_stack.index];
+}
+
 
 /*======================================================================*
 			   					search
@@ -270,4 +296,22 @@ PUBLIC void exit_search(CONSOLE* p_con) {
     // 更新光标位置
     p_con->cursor = p_con->search_pos;
     flush(p_con);
+}
+
+
+/*======================================================================*
+			   					undo
+ *======================================================================*/
+PUBLIC void undo(CONSOLE* p_con) {
+	if(p_con->action_stack.index == 0) return;
+	char action = pop_action(p_con);
+	out_char(p_con, action);
+	// switch(action) {
+	// 	case '\b':
+	// 		out_char(p_con, );
+	// 		break;
+	// 	default:
+	// 		out_char(p_con, '\b');
+	// 		break;
+	// }
 }

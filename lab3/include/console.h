@@ -24,6 +24,17 @@ typedef struct cursor_pos_stack {
     int data[SCREEN_SIZE];
 }POSSTACK;
 
+typedef struct ch_stack {
+	int index;
+	char data[SCREEN_SIZE];
+}CHSTACK;
+
+typedef struct action_stack {
+	int index;
+	char ch[SCREEN_SIZE];
+	char data[SCREEN_SIZE];
+}ACTIONSTACK;
+
 /* CONSOLE */
 typedef struct s_console {
 	unsigned int current_start_addr;  /* 当前显示到了什么位置 */
@@ -32,6 +43,8 @@ typedef struct s_console {
 	unsigned int cursor;              /* 当前光标位置 */
 	unsigned int search_pos;          /* 搜索的位置 */
 	POSSTACK pos_stack;               /* 光标位置栈 */
+	CHSTACK ch_stack;                 /* 字符栈 */
+	ACTIONSTACK action_stack;         /* 操作栈 */
 }CONSOLE;
 
 #endif /* _ORANGES_CONSOLE_H_ */
