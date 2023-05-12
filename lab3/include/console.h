@@ -17,6 +17,7 @@
 
 #define DEFAULT_CHAR_COLOR	0x07	/* 0000 0111 黑底白字 */
 #define RED_CHAR_COLOR		0x04	/* 0000 0100 黑底红字 */
+#define TAB_CHAR_COLOR      0x02    /* 0000 0010 黑底绿色 */
 
 /* 记录光标位置 */
 typedef struct cursor_pos_stack {

@@ -86,7 +86,7 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - TAB_WIDTH) {
 				for(int i=0; i<TAB_WIDTH; i++) {
 					*p_vmem++ = ' ';
-					*p_vmem++ = DEFAULT_CHAR_COLOR;
+					*p_vmem++ = TAB_CHAR_COLOR;
 				}
 				push_pos(p_con, p_con->cursor);
 				push_ch(p_con, '\t');
@@ -269,7 +269,17 @@ PUBLIC void search(CONSOLE* p_con) {
 		begin = end = i;
 		for(int j=p_con->search_pos*2; j<p_con->cursor*2; j+=2) {
 			if(*(u8*)(V_MEM_BASE + end) == *(u8*)(V_MEM_BASE + j)) {
-				end += 2;
+				if(*(u8*)(V_MEM_BASE + end) == ' ') {  // 判断是普通空格还是TAB
+					if(*(u8*)(V_MEM_BASE + end + 1) == TAB_CHAR_COLOR) {
+						if(*(u8*)(V_MEM_BASE + j + 1) == TAB_CHAR_COLOR) end += 2;
+						else {
+							found = 0;
+							break;
+						}
+					}
+					else end += 2;
+				}
+				else end += 2;
 			}
 			else {
 				found = 0;
@@ -311,21 +321,5 @@ PUBLIC void exit_search(CONSOLE* p_con) {
 PUBLIC void undo(CONSOLE* p_con) {
 	if(p_con->action_stack.index == 0) return;
 	char action = pop_action(p_con);
-	
-	// u8* p_vmem = (u8*)(V_MEM_BASE + p_con->original_addr * 2);
-	// if(action == '\b') action = '!';
-	// *(u8*)(V_MEM_BASE + p_con->cursor*2) = action;
-    // *(u8*)(V_MEM_BASE + p_con->cursor*2 + 1) = 0x2;
-
-	//out_char(p_con, '\b');
-	
 	out_char(p_con, action);
-	// switch(action) {
-	// 	case '\b':
-	// 		out_char(p_con, );
-	// 		break;
-	// 	default:
-	// 		out_char(p_con, '\b');
-	// 		break;
-	// }
 }
