@@ -42,7 +42,7 @@ PUBLIC void task_tty() {
 	while(1) {
 		for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {  // 使用循环处理每一个tty的读和写操作
 			if(mode == NORMAL_MODE) {
-				if(get_ticks() - time > 100 * HZ) {
+				if(get_ticks() - time > 100 * HZ) {  // 约为20s
 					for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
 						clean_screen(p_tty->p_console);
 					}
@@ -90,9 +90,9 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
 			char ch = key;
 			if(ch == 'z' || ch == 'Z') {
 				int prev_mode = mode;
-				mode = UNDO_MODE;
+				mode = UNDO_MODE;           // 切换到撤回模式
 				undo(p_tty->p_console);
-				mode = prev_mode;
+				mode = prev_mode;           // 切换回先前模式
 			}
 		}
 		else put_key(p_tty, key);
@@ -104,6 +104,9 @@ PUBLIC void in_process(TTY* p_tty, u32 key) {
 				if(mode == NORMAL_MODE) {
 					mode = SEARCH_MODE;
 					p_tty->p_console->search_pos = p_tty->p_console->cursor;
+					p_tty->p_console->search_pos_idx = p_tty->p_console->pos_stack.index;        // 记录搜索开始时的光标栈index
+					p_tty->p_console->search_ch_idx = p_tty->p_console->ch_stack.index;          // 记录搜索开始时的字符栈index  
+					p_tty->p_console->search_action_idx = p_tty->p_console->action_stack.index;  // 记录搜索开始时的操作栈index
 				}
 				else if(mode == SEARCH_MODE) {
 					mode = NORMAL_MODE;

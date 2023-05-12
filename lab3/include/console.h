@@ -24,14 +24,15 @@ typedef struct cursor_pos_stack {
     int data[SCREEN_SIZE];
 }POSSTACK;
 
+/* 记录字符栈 */
 typedef struct ch_stack {
 	int index;
 	char data[SCREEN_SIZE];
 }CHSTACK;
 
+/* 记录操作栈 */
 typedef struct action_stack {
 	int index;
-	char ch[SCREEN_SIZE];
 	char data[SCREEN_SIZE];
 }ACTIONSTACK;
 
@@ -41,7 +42,10 @@ typedef struct s_console {
 	unsigned int original_addr;	      /* 当前控制台对应显存位置 */
 	unsigned int v_mem_limit;         /* 当前控制台占的显存大小 */
 	unsigned int cursor;              /* 当前光标位置 */
-	unsigned int search_pos;          /* 搜索的位置 */
+	unsigned int search_pos;          /* 搜索开始的位置 */
+	int search_pos_idx;               /* 搜索开始时的位置栈index */
+	int search_ch_idx;                /* 搜索开始时的字符栈index */
+	int search_action_idx;            /* 搜索开始时的操作栈index */
 	POSSTACK pos_stack;               /* 光标位置栈 */
 	CHSTACK ch_stack;                 /* 字符栈 */
 	ACTIONSTACK action_stack;         /* 操作栈 */

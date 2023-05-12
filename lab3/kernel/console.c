@@ -30,7 +30,7 @@ PRIVATE void push_pos(CONSOLE* p_con, int pos);
 PRIVATE int  pop_pos(CONSOLE* p_con);
 PRIVATE void push_ch(CONSOLE* p_con, char ch);
 PRIVATE char pop_ch(CONSOLE* p_con);
-PRIVATE void push_action(CONSOLE* p_con, char action, char ch);
+PRIVATE void push_action(CONSOLE* p_con, char action);
 PRIVATE char pop_action(CONSOLE* p_con);
 PUBLIC  void exit_search(CONSOLE* p_con);
 
@@ -89,13 +89,17 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 					*p_vmem++ = DEFAULT_CHAR_COLOR;
 				}
 				push_pos(p_con, p_con->cursor);
+				push_ch(p_con, '\t');
+				if(mode != UNDO_MODE) push_action(p_con, '\b');  // \t的相反操作是删除
 				p_con->cursor += TAB_WIDTH;  // 调整光标位置
 			}
 			break;
 		case '\n':
 			if(p_con->cursor < p_con->original_addr + p_con->v_mem_limit - SCREEN_WIDTH) {
 				push_pos(p_con, p_con->cursor);
-				p_con->cursor = p_con->original_addr + SCREEN_WIDTH * ((p_con->cursor - p_con->original_addr) / SCREEN_WIDTH + 1);
+				push_ch(p_con, '\n');
+				if(mode != UNDO_MODE) push_action(p_con, '\b');  // \n的相反操作是删除
+				p_con->cursor = p_con->original_addr + SCREEN_WIDTH * ((p_con->cursor - p_con->original_addr) / SCREEN_WIDTH + 1);  // 调整光标位置
 			}
 			break;
 		case '\b':
@@ -103,12 +107,12 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 			if(p_con->cursor > p_con->original_addr) {
 				int prev_pos = p_con->cursor;    // 原先光标的位置
 				p_con->cursor = pop_pos(p_con);  // 删除后光标位置
-				for(int i=1; i<prev_pos-p_con->cursor+1; i++) { // 使用空格填充
+				for(int i=1; i<prev_pos-p_con->cursor+1; i++) {  // 使用空格填充
 					*(p_vmem-2*i) = ' ';
 					*(p_vmem-2*i+1) = DEFAULT_CHAR_COLOR;
 				}
 				char ch = pop_ch(p_con);
-				if(mode != UNDO_MODE) push_action(p_con, ch, ch);
+				if(mode != UNDO_MODE) push_action(p_con, ch);    // 删除的相反操作是重新打印
 			}
 			break;
 		}
@@ -119,8 +123,8 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 				else if(mode == SEARCH_MODE) *p_vmem++ = RED_CHAR_COLOR;
 				push_pos(p_con, p_con->cursor);
 				push_ch(p_con, ch);
-				push_action(p_con, '\b', '\b');
-				p_con->cursor++;
+				if(mode != UNDO_MODE) push_action(p_con, '\b');  // 打印字符的相反操作是删除
+				p_con->cursor++;  // 调整光标位置
 			}
 			break;
 	}
@@ -245,10 +249,8 @@ PRIVATE char pop_ch(CONSOLE* p_con) {
 	return p_con->ch_stack.data[--p_con->ch_stack.index];
 }
 
-PRIVATE void push_action(CONSOLE* p_con, char action, char ch) {
-	p_con->action_stack.data[p_con->action_stack.index] = action;
-	p_con->action_stack.ch[p_con->action_stack.index] = ch;
-	p_con->action_stack.index++;
+PRIVATE void push_action(CONSOLE* p_con, char action) {
+	p_con->action_stack.data[p_con->action_stack.index++] = action;
 }
 
 PRIVATE char pop_action(CONSOLE* p_con) {
@@ -283,6 +285,10 @@ PUBLIC void search(CONSOLE* p_con) {
 }
 
 PUBLIC void exit_search(CONSOLE* p_con) {
+	p_con->pos_stack.index = p_con->search_pos_idx;
+	p_con->ch_stack.index = p_con->search_ch_idx;
+	p_con->action_stack.index = p_con->search_action_idx;
+
     u8* p_vmem = (u8*)(V_MEM_BASE + p_con->original_addr * 2);
     // 删除关键词
     for(int i=p_con->search_pos*2; i<p_con->cursor*2; i+=2) { 
@@ -305,6 +311,14 @@ PUBLIC void exit_search(CONSOLE* p_con) {
 PUBLIC void undo(CONSOLE* p_con) {
 	if(p_con->action_stack.index == 0) return;
 	char action = pop_action(p_con);
+	
+	// u8* p_vmem = (u8*)(V_MEM_BASE + p_con->original_addr * 2);
+	// if(action == '\b') action = '!';
+	// *(u8*)(V_MEM_BASE + p_con->cursor*2) = action;
+    // *(u8*)(V_MEM_BASE + p_con->cursor*2 + 1) = 0x2;
+
+	//out_char(p_con, '\b');
+	
 	out_char(p_con, action);
 	// switch(action) {
 	// 	case '\b':
