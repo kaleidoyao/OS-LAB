@@ -83,38 +83,44 @@ PUBLIC int kernel_main()
 	while(1){}
 }
 
-/*======================================================================*
-                               TestA
- *======================================================================*/
-void TestA()
-{
-	int i = 0;
+void NormalA() {
 	while (1) {
-		disp_str("A.");
+		disp_str("NA.");
 		milli_delay(10);
 	}
 }
 
-/*======================================================================*
-                               TestB
- *======================================================================*/
-void TestB()
-{
-	int i = 0x1000;
-	while(1){
-		disp_str("B.");
+void ReaderB() {
+	while (1) {
+		disp_str("RB.");
 		milli_delay(10);
 	}
 }
 
-/*======================================================================*
-                               TestB
- *======================================================================*/
-void TestC()
-{
-	int i = 0x2000;
-	while(1){
-		disp_str("C.");
+void ReaderC() {
+	while (1) {
+		disp_str("RC.");
+		milli_delay(10);
+	}
+}
+
+void ReaderD() {
+	while (1) {
+		disp_str("RD.");
+		milli_delay(10);
+	}
+}
+
+void WriterE() {
+	while (1) {
+		disp_str("WE.");
+		milli_delay(10);
+	}
+}
+
+void WriterF() {
+	while (1) {
+		disp_str("WF.");
 		milli_delay(10);
 	}
 }

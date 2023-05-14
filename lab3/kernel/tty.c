@@ -42,7 +42,7 @@ PUBLIC void task_tty() {
 	while(1) {
 		for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {  // 使用循环处理每一个tty的读和写操作
 			if(mode == NORMAL_MODE) {
-				if(get_ticks() - time > 100 * HZ) {  // 约为20s
+				if(get_ticks() - time > 20 * HZ) {  // 约为20s
 					for(p_tty=TTY_FIRST; p_tty<TTY_END; p_tty++) {
 						clean_screen(p_tty->p_console);
 					}
