@@ -27,6 +27,9 @@ typedef struct s_stackframe {	/* proc_ptr points here				↑ Low			*/
 	u32	ss;		/*  ┛						┷High			*/
 }STACK_FRAME;
 
+typedef enum {
+    WORKING, WAITING, RELAXING
+}STATUS;
 
 typedef struct s_proc {
 	STACK_FRAME regs;          /* process registers saved in stack frame */
@@ -39,6 +42,9 @@ typedef struct s_proc {
 
 	u32 pid;                   /* process id passed in from MM */
 	char p_name[16];           /* name of the process */
+
+	// 新增成员变量
+	STATUS status;             /* status of the process */
 }PROCESS;
 
 typedef struct s_task {

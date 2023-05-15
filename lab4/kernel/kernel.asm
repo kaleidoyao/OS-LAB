@@ -339,16 +339,19 @@ save:
 ;                                 sys_call
 ; ====================================================================================
 sys_call:
-        call    save
+    call    save
 
-        sti
+    sti
 
-        call    [sys_call_table + eax * 4]
-        mov     [esi + EAXREG - P_STACKBASE], eax
+    push    ebx
+    call    [sys_call_table + eax * 4]
+    pop     ebx
 
-        cli
+    mov     [esi + EAXREG - P_STACKBASE], eax
 
-        ret
+    cli
+
+    ret
 
 
 ; ====================================================================================

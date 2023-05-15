@@ -45,3 +45,18 @@ PUBLIC int sys_get_ticks()
 	return ticks;
 }
 
+PUBLIC void sys_my_sleep(int milli_seconds) {
+	disp_str("clolor");
+}
+
+PUBLIC void sys_my_print(char* s) {
+    
+}
+
+PUBLIC void sys_p() {
+
+}
+
+PUBLIC void sys_v() {
+
+}
