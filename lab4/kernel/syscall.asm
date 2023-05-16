@@ -34,24 +34,25 @@ get_ticks:
 
 my_sleep:
     mov eax, _NR_my_sleep
-    mov ebx, [esp+4]    ; 参数
+    mov ecx, [esp+4]    ; 参数
     int INT_VECTOR_SYS_CALL
     ret
 
 my_print:
     mov eax, _NR_my_print
-    mov ebx, [esp+4]    ; 参数
+    mov ecx, [esp+4]    ; 参数1
+    mov edi, [esp+8]    ; 参数2
     int INT_VECTOR_SYS_CALL
     ret
 
 p:
     mov eax, _NR_p
-    mov ebx, [esp+4]    ; 参数
+    mov ecx, [esp+4]    ; 参数
     int INT_VECTOR_SYS_CALL
     ret
 
 v:	
     mov eax, _NR_v
-    mov ebx, [esp+4]    ; 参数
+    mov ecx, [esp+4]    ; 参数
     int INT_VECTOR_SYS_CALL
     ret

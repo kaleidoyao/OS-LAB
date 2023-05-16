@@ -49,12 +49,21 @@ PUBLIC void sys_my_sleep(int milli_seconds) {
 	disp_str("clolor");
 }
 
-PUBLIC void sys_my_print(char* s) {
-    
+PUBLIC void sys_my_print(char* s, int color) {
+    // 打印字符
+    disp_color_str(s, color);
+
+    // 移动光标
+    disable_int();
+    out_byte(CRTC_ADDR_REG, CURSOR_H);
+    out_byte(CRTC_DATA_REG, ((disp_pos / 2) >> 8) & 0xFF);
+    out_byte(CRTC_ADDR_REG, CURSOR_L);
+    out_byte(CRTC_DATA_REG, (disp_pos / 2) & 0xFF);
+    enable_int();
 }
 
-PUBLIC void sys_p() {
-
+PUBLIC void sys_p(char* s) {
+	disp_str(s);
 }
 
 PUBLIC void sys_v() {

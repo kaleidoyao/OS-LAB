@@ -13,6 +13,9 @@
 #include "proc.h"
 #include "global.h"
 
+char signs[3] = {'O', 'X', 'Z'};
+int colors[3] = {TEXT_GREEN, TEXT_RED, TEXT_BLUE};
+
 char* int2str(int num, char* str, int radix) {
     char index[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";  // 索引表
     unsigned unum;    // 存放要转换的整数的绝对值，转换的整数可能是负数
@@ -48,6 +51,14 @@ char* int2str(int num, char* str, int radix) {
     return str;  // 返回转换后的字符串
 }
 
+void clean_screen() {  // 清屏
+	disp_pos = 0;
+	for(int i=0; i<80*25; i++) {
+		disp_str(" ");
+	}
+	disp_pos = 0;
+}
+
 
 /*======================================================================*
                             kernel_main
@@ -64,6 +75,9 @@ PUBLIC int kernel_main()
 	for (i = 0; i < NR_TASKS; i++) {
 		strcpy(p_proc->p_name, p_task->name);	// name of the process
 		p_proc->pid = i;			// pid
+
+		// 初始化新增成员变量
+		p_proc->status = RELAXING;
 
 		p_proc->ldt_sel = selector_ldt;
 
@@ -113,55 +127,64 @@ PUBLIC int kernel_main()
         put_irq_handler(CLOCK_IRQ, clock_handler); /* 设定时钟中断处理程序 */
         enable_irq(CLOCK_IRQ);                     /* 让8259A可以接收时钟中断 */
 
+	clean_screen();
 	restart();
 
 	while(1){}
 }
 
 void NormalA() {
-	int sequence = 0;
-	char string[2] = {'\0', '\0'};
-	while(++sequence <= 20) {
-		int2str(sequence / 10, string, 10);
-		disp_str(string);
-		int2str(sequence % 10, string, 10);
-		disp_str(string);
-		disp_str(": ");
-	}
-	while(1);
+    int sequence = 0;
+    char string[2] = {'\0', '\0'};
+    char status[3] = {'\0', ' ', '\0'};
+    while(++sequence <= 20) {
+        int2str(sequence / 10, string, 10);  // 打印序列号
+        my_print(string, TEXT_DEFAULT);
+        int2str(sequence % 10, string, 10);
+        my_print(string, TEXT_DEFAULT);
+		my_print(": ", TEXT_DEFAULT);
+        for(int i=1; i<NR_TASKS; i++) {
+            int proc_status = (proc_table + i)->status;
+            status[0] = signs[proc_status];
+			int color = colors[proc_status];
+			my_print(status, color);
+        }
+        my_print("\n", TEXT_DEFAULT);
+    }
+    while(1);
 }
 
 void ReaderB() {
 	while (1) {
-		disp_str("RB.");
+		// disp_str("RB.");
 		milli_delay(10);
 	}
 }
 
 void ReaderC() {
 	while (1) {
-		disp_str("RC.");
+		// disp_str("RC.");
 		milli_delay(10);
 	}
 }
 
 void ReaderD() {
 	while (1) {
-		disp_str("RD.");
+		// disp_str("RD.");
 		milli_delay(10);
 	}
 }
 
 void WriterE() {
 	while (1) {
-		disp_str("WE.");
+		// disp_str("WE.");
 		milli_delay(10);
 	}
 }
 
 void WriterF() {
 	while (1) {
-		disp_str("WF.");
+		// disp_str("WF.");
 		milli_delay(10);
 	}
 }

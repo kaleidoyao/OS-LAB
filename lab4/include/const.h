@@ -16,6 +16,12 @@
 #define	PUBLIC		/* PUBLIC is the opposite of PRIVATE */
 #define	PRIVATE	static	/* PRIVATE x limits the scope of x */
 
+/* Color */
+#define TEXT_GREEN   0x0a
+#define TEXT_RED     0x0c
+#define TEXT_BLUE    0x09
+#define TEXT_DEFAULT 0x0f
+
 /* Boolean */
 #define	TRUE	1
 #define	FALSE	0
@@ -47,6 +53,12 @@
 			     */
 #define TIMER_FREQ     1193182L/* clock frequency for timer in PC and AT */
 #define HZ             100  /* clock freq (software settable on IBM-PC) */
+
+/* VGA */
+#define CRTC_ADDR_REG   0x3D4   /* CRT Controller Registers - Addr Register */
+#define CRTC_DATA_REG   0x3D5   /* CRT Controller Registers - Data Register */
+#define CURSOR_H        0xE     /* reg index of cursor position (MSB) */
+#define CURSOR_L        0xF     /* reg index of cursor position (LSB) */
 
 /* Hardware interrupts */
 #define	NR_IRQ		16	/* Number of IRQs */
