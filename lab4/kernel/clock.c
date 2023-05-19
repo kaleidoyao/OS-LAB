@@ -8,19 +8,24 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
 #include "string.h"
 #include "proc.h"
 #include "global.h"
+#include "proto.h"
 
 
 /*======================================================================*
                            clock_handler
  *======================================================================*/
-PUBLIC void clock_handler(int irq)
-{
+PUBLIC void clock_handler(int irq) {
 	ticks++;
 	p_proc_ready->ticks--;
+
+	for(int i=0; i<NR_TASKS; i++) {
+		if(proc_table[i].sleep_time > 0) {
+			proc_table[i].sleep_time--;
+		}
+	}
 
 	if (k_reenter != 0) {
 		return;
@@ -31,7 +36,6 @@ PUBLIC void clock_handler(int irq)
 	}
 
 	schedule();
-
 }
 
 /*======================================================================*

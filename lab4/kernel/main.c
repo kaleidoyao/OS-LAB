@@ -8,10 +8,10 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
 #include "string.h"
 #include "proc.h"
 #include "global.h"
+#include "proto.h"
 
 char signs[3] = {'O', 'X', 'Z'};
 int colors[3] = {TEXT_GREEN, TEXT_RED, TEXT_BLUE};
@@ -49,6 +49,16 @@ char* int2str(int num, char* str, int radix) {
     }
  
     return str;  // 返回转换后的字符串
+}
+
+void init_main() {
+    // 初始化进程表
+    for(int i=0; i<NR_TASKS; i++) {
+		proc_table[i].ticks = 1;
+	}
+
+    // 初始化读者计数器
+    reader_count = 0;
 }
 
 void clean_screen() {  // 清屏
@@ -110,9 +120,7 @@ PUBLIC int kernel_main()
 		selector_ldt += 1 << 3;
 	}
 
-	proc_table[0].ticks = proc_table[0].priority = 15;
-	proc_table[1].ticks = proc_table[1].priority =  5;
-	proc_table[2].ticks = proc_table[2].priority =  3;
+    init_main(); // 初始化
 
 	k_reenter = 0;
 	ticks = 0;
@@ -133,6 +141,57 @@ PUBLIC int kernel_main()
 	while(1){}
 }
 
+void reading(int slices) {
+    p_proc_ready->status = WORKING;
+    my_sleep(slices * TIME_SLICE);
+}
+
+void writing(int slices) {
+    p_proc_ready->status = WORKING;
+    my_sleep(slices * TIME_SLICE);
+}
+
+void reader_rf(int slices) {
+    p(&reader_mutex);          // 各读进程互斥访问reader_count
+    if(++reader_count == 1) {
+        p(&rw_mutex);
+    }
+    v(&reader_mutex);
+
+    reading(slices);
+
+    p(&reader_mutex);
+    if(--reader_count == 0) {
+        v(&rw_mutex);
+    }
+    v(&reader_mutex);
+}
+
+void writer_rf(int slices) {
+    p(&rw_mutex);
+    writing(slices);
+    v(&rw_mutex);
+}
+
+void reader_wf() {
+
+}
+
+void writer_wf() {
+
+}
+
+void reader_fair() {
+
+}
+
+void writer_fair() {
+
+}
+
+read_function read_funcs[3] = {reader_rf, reader_wf, reader_fair};
+write_function write_funcs[3] = {writer_rf, writer_wf, writer_fair};
+
 void NormalA() {
     int sequence = 0;
     char string[2] = {'\0', '\0'};
@@ -142,49 +201,65 @@ void NormalA() {
         my_print(string, TEXT_DEFAULT);
         int2str(sequence % 10, string, 10);
         my_print(string, TEXT_DEFAULT);
-		my_print(": ", TEXT_DEFAULT);
+        my_print(": ", TEXT_DEFAULT);
         for(int i=1; i<NR_TASKS; i++) {
             int proc_status = (proc_table + i)->status;
             status[0] = signs[proc_status];
-			int color = colors[proc_status];
-			my_print(status, color);
+            int color = colors[proc_status];
+            my_print(status, color);
         }
         my_print("\n", TEXT_DEFAULT);
+        milli_delay(TIME_SLICE);
     }
     while(1);
 }
 
 void ReaderB() {
-	while (1) {
-		// disp_str("RB.");
-		milli_delay(10);
-	}
+    while(1) {
+        // disp_str("B");
+        read_funcs[STRATEGY](WORKING_SLICES_B);
+        p_proc_ready->status = RELAXING;
+        my_sleep(RELAXING_SLICES * TIME_SLICE);
+        p_proc_ready->status = WAITING;
+    }
 }
 
 void ReaderC() {
-	while (1) {
-		// disp_str("RC.");
-		milli_delay(10);
-	}
+    while(1) {
+        // disp_str("C");
+        read_funcs[STRATEGY](WORKING_SLICES_C);
+        p_proc_ready->status = RELAXING;
+        my_sleep(RELAXING_SLICES * TIME_SLICE);
+        p_proc_ready->status = WAITING;
+    }
 }
 
 void ReaderD() {
-	while (1) {
-		// disp_str("RD.");
-		milli_delay(10);
-	}
+    while(1) {
+        // disp_str("D");
+        read_funcs[STRATEGY](WORKING_SLICES_D);
+        p_proc_ready->status = RELAXING;
+        my_sleep(RELAXING_SLICES * TIME_SLICE);
+        p_proc_ready->status = WAITING;
+    }
 }
 
 void WriterE() {
-	while (1) {
-		// disp_str("WE.");
-		milli_delay(10);
-	}
+    while(1) {
+        // disp_str("E");
+        write_funcs[STRATEGY](WORKING_SLICES_E);
+        p_proc_ready->status = RELAXING;
+        my_sleep(RELAXING_SLICES * TIME_SLICE);
+        p_proc_ready->status = WAITING;
+    }
 }
 
 void WriterF() {
-	while (1) {
-		// disp_str("WF.");
-		milli_delay(10);
-	}
+    while(1) {
+        // disp_str("F");
+        write_funcs[STRATEGY](WORKING_SLICES_F);
+        p_proc_ready->status = RELAXING;
+        my_sleep(RELAXING_SLICES * TIME_SLICE);
+        p_proc_ready->status = WAITING;
+    }
 }

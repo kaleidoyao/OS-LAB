@@ -74,6 +74,9 @@ disp_str:
 disp_color_str:
 	push	ebp
 	mov	ebp, esp
+	push    ebx
+	push    esi
+	push	edi
 
 	mov	esi, [ebp + 8]	; pszInfo
 	mov	edi, [disp_pos]
@@ -103,6 +106,9 @@ disp_color_str:
 .2:
 	mov	[disp_pos], edi
 
+	pop	edi
+	pop	esi
+	pop	ebx
 	pop	ebp
 	ret
 

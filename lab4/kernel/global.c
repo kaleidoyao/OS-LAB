@@ -10,10 +10,9 @@
 #include "type.h"
 #include "const.h"
 #include "protect.h"
-#include "proto.h"
 #include "proc.h"
 #include "global.h"
-
+#include "proto.h"
 
 PUBLIC	PROCESS			proc_table[NR_TASKS];
 
@@ -36,3 +35,6 @@ PUBLIC	system_call		sys_call_table[NR_SYS_CALL] = {sys_get_ticks,
 													   sys_p,
 													   sys_v,
 													  };
+
+PUBLIC SEMAPHORE rw_mutex = {1};
+PUBLIC SEMAPHORE reader_mutex = {1};

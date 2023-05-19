@@ -45,6 +45,8 @@ typedef struct s_proc {
 
 	// 新增成员变量
 	STATUS status;             /* status of the process */
+    int sleep_time;
+	int is_blocked;
 }PROCESS;
 
 typedef struct s_task {
@@ -55,7 +57,7 @@ typedef struct s_task {
 
 
 /* Number of tasks */
-#define NR_TASKS	6
+#define NR_TASKS    6
 
 /* stacks of tasks */
 #define STACK_SIZE_NORMALA  0x8000
@@ -71,3 +73,8 @@ typedef struct s_task {
 				STACK_SIZE_READERD + \
 				STACK_SIZE_WRITERE + \
 				STACK_SIZE_WRITERF)
+
+typedef struct semaphore {
+    int value;                 // 信号量值
+    PROCESS* queue[NR_TASKS];  // 进程队列
+}SEMAPHORE;

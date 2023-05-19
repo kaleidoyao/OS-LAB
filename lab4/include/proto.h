@@ -45,13 +45,13 @@ PUBLIC void clock_handler(int irq);
 PUBLIC  int     sys_get_ticks();        /* sys_call */
 PUBLIC  void    sys_my_sleep(int milli_seconds);
 PUBLIC  void    sys_my_print(char* s, int color);
-PUBLIC  void    sys_p();
-PUBLIC  void    sys_v();
+PUBLIC  void    sys_p(SEMAPHORE *s);
+PUBLIC  void    sys_v(SEMAPHORE *s);
 
 /* syscall.asm */
 PUBLIC  void    sys_call();             /* int_handler */
 PUBLIC  int     get_ticks();
 PUBLIC  void    my_sleep(int milli_seconds);
 PUBLIC  void    my_print(char* s, int color);
-PUBLIC  void    p();
-PUBLIC  void    v();
+PUBLIC  void    p(SEMAPHORE *s);
+PUBLIC  void    v(SEMAPHORE *s);
