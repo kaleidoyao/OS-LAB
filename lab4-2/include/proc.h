@@ -44,9 +44,9 @@ typedef struct s_proc {
 	char p_name[16];           /* name of the process */
 
 	// 新增成员变量
-	STATUS status;             /* status of the process */
     int sleep_time;
 	int is_blocked;
+	int total;                 /* 生产或消费的总量 */
 }PROCESS;
 
 typedef struct s_task {
@@ -61,18 +61,18 @@ typedef struct s_task {
 
 /* stacks of tasks */
 #define STACK_SIZE_NORMALA  0x8000
-#define STACK_SIZE_READERB  0x8000
-#define STACK_SIZE_READERC  0x8000
-#define STACK_SIZE_READERD  0x8000
-#define STACK_SIZE_WRITERE  0x8000
-#define STACK_SIZE_WRITERF  0x8000
+#define STACK_SIZE_PRODUCERB  0x8000
+#define STACK_SIZE_PRODUCERC  0x8000
+#define STACK_SIZE_CONSUMERD  0x8000
+#define STACK_SIZE_CONSUMERE  0x8000
+#define STACK_SIZE_CONSUMERF  0x8000
 
 #define STACK_SIZE_TOTAL	(STACK_SIZE_NORMALA + \
-				STACK_SIZE_READERB + \
-				STACK_SIZE_READERC + \
-				STACK_SIZE_READERD + \
-				STACK_SIZE_WRITERE + \
-				STACK_SIZE_WRITERF)
+				STACK_SIZE_PRODUCERB + \
+				STACK_SIZE_PRODUCERC + \
+				STACK_SIZE_CONSUMERD + \
+				STACK_SIZE_CONSUMERE + \
+				STACK_SIZE_CONSUMERF)
 
 typedef struct semaphore {
     int value;                 // 信号量值

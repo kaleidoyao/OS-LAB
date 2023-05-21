@@ -25,11 +25,11 @@ void restart();
 
 /* main.c */
 void NormalA();
-void ReaderB();
-void ReaderC();
-void ReaderD();
-void WriterE();
-void WriterF();
+void ProducerB();
+void ProducerC();
+void ConsumerD();
+void ConsumerE();
+void ConsumerF();
 
 /* i8259.c */
 PUBLIC void put_irq_handler(int irq, irq_handler handler);

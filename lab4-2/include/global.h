@@ -29,11 +29,11 @@ extern	char		task_stack[];
 extern  TASK            task_table[];
 extern	irq_handler	irq_table[];
 
-EXTERN int reader_count;        // 读者计数器
-EXTERN int writer_count;        // 写者计数器
+EXTERN int w[CAPACITY];             // 仓库
+EXTERN int putptr;                  // 生产者放产品的位置
+EXTERN int getptr;                  // 消费者取产品的位置
 
-extern SEMAPHORE rw_mutex;            // 用于实现对共享文件的互斥访问
-extern SEMAPHORE reader_mutex;        // 用于实现读者之间的互斥访问
-extern SEMAPHORE writer_mutex;        // 用于实现写者之间的互斥访问
-extern SEMAPHORE reader_allow_mutex;  // 用于实现写者优先
-extern SEMAPHORE reader_count_mutex;  // 用于限制读者人数
+extern SEMAPHORE mutex;             // 用于实现互斥访问仓库
+extern SEMAPHORE product1;          // 仓库中产品1的数量
+extern SEMAPHORE product2;          // 仓库中产品2的数量
+extern SEMAPHORE warehouse;         // 仓库中产品的总数量

@@ -63,7 +63,6 @@ PUBLIC void sys_p(SEMAPHORE *s) {
     if(s->value < 0) {
         s->queue[-s->value - 1] = p_proc_ready;  // 放入队列
         p_proc_ready->is_blocked = TRUE;         // 阻塞
-        p_proc_ready->status = WAITING;          // 等待
         schedule();
     }
     enable_int();

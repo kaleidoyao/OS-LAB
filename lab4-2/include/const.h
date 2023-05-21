@@ -78,19 +78,6 @@
 
 #define TIME_SLICE      1000
 
-#define MAX_READERS       3
-
-#define RELAXING_SLICES   0
-#define WORKING_SLICES_B  2
-#define WORKING_SLICES_C  3
-#define WORKING_SLICES_D  3
-#define WORKING_SLICES_E  3
-#define WORKING_SLICES_F  4
-
-#define READ_FIRST      0
-#define WRITE_FIRST     1
-#define FAIR            2
-
-#define STRATEGY READ_FIRST
+# define CAPACITY       5
 
 #endif /* _ORANGES_CONST_H_ */

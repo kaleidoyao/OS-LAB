@@ -13,9 +13,6 @@
 #include "global.h"
 #include "proto.h"
 
-char signs[3] = {'O', 'X', 'Z'};
-int colors[3] = {TEXT_GREEN, TEXT_RED, TEXT_BLUE};
-
 char* int2str(int num, char* str, int radix) {
     char index[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";  // 索引表
     unsigned unum;    // 存放要转换的整数的绝对值，转换的整数可能是负数
@@ -57,8 +54,16 @@ void init_main() {
 		proc_table[i].ticks = 1;
 	}
 
-    // 初始化读者计数器
-    reader_count = 0;
+    // 初始化信号量
+    product1.value = 0;
+    product2.value = 0;
+
+    // 初始化仓库
+    for(int i=0; i<CAPACITY; i++) {
+        w[i] = 0;
+    }
+    putptr = 0;
+    getptr = 0;
 }
 
 void clean_screen() {  // 清屏
@@ -85,9 +90,6 @@ PUBLIC int kernel_main()
 	for (i = 0; i < NR_TASKS; i++) {
 		strcpy(p_proc->p_name, p_task->name);	// name of the process
 		p_proc->pid = i;			// pid
-
-		// 初始化新增成员变量
-		p_proc->status = RELAXING;
 
 		p_proc->ldt_sel = selector_ldt;
 
@@ -141,113 +143,74 @@ PUBLIC int kernel_main()
 	while(1){}
 }
 
-void reading(int slices) {
-    p_proc_ready->status = WORKING;
-    my_sleep(slices * TIME_SLICE);
+void producing() {
+    // 生产货物
+    my_sleep(TIME_SLICE);
 }
 
-void writing(int slices) {
-    p_proc_ready->status = WORKING;
-    my_sleep(slices * TIME_SLICE);
+void consuming() {
+    // 消费货物
+    my_sleep(TIME_SLICE);
 }
 
-void reader_rf(int slices) {
-    p(&reader_mutex);          // 各读进程互斥访问reader_count
-    if(++reader_count == 1) {
-        p(&rw_mutex);
-    }
-    v(&reader_mutex);
+void produce1() {
+    producing();     // 生产货物
+    p(&warehouse);
 
-    p(&reader_count_mutex);    // 限制读者人数
-    reading(slices);
-    v(&reader_count_mutex);
+    p(&mutex);       // 将货物放入仓库
+    w[putptr] = 1;
+    putptr = (putptr + 1) % CAPACITY;
+    p_proc_ready->total++;
+    v(&mutex);
 
-    p(&reader_mutex);
-    if(--reader_count == 0) {
-        v(&rw_mutex);
-    }
-    v(&reader_mutex);
+    v(&product1);
 }
 
-void writer_rf(int slices) {
-    p(&rw_mutex);
-    writing(slices);
-    v(&rw_mutex);
+void consume1() {
+    p(&product1);
+
+    p(&mutex);       // 从仓库取出货物
+    w[getptr] = 0;
+    getptr = (getptr + 1) % CAPACITY;
+    p_proc_ready->total++;
+    v(&mutex);
+
+    v(&warehouse);
+    consuming();     // 消费货物
 }
 
-void reader_wf(int slices) {
-    p(&reader_allow_mutex);    // 判断是否可读
-    p(&reader_mutex);          // 各读进程互斥访问reader_count
-    if(++reader_count == 1) {
-        p(&rw_mutex);
-    }
-    v(&reader_mutex);
-    v(&reader_allow_mutex);
+void produce2() {
+    producing();     // 生产货物
+    p(&warehouse);
 
-    p(&reader_count_mutex);    // 限制读者人数
-    reading(slices);
-    v(&reader_count_mutex);
+    p(&mutex);       // 将货物放入仓库
+    w[putptr] = 2;
+    putptr = (putptr + 1) % CAPACITY;
+    p_proc_ready->total++;
+    v(&mutex);
 
-    p(&reader_mutex);
-    if(--reader_count == 0) {
-        v(&rw_mutex);
-    }
-    v(&reader_mutex);
+    v(&product2);
 }
 
-void writer_wf(int slices) {
-    p(&writer_mutex);          // 各写进程互斥访问writer_count
-    if(++writer_count == 1) {
-        p(&reader_allow_mutex);
-    }
-    v(&writer_mutex);
+void consume2() {
+    p(&product2);
 
-    p(&rw_mutex);
-    writing(slices);
-    v(&rw_mutex);
+    p(&mutex);       // 从仓库取出货物
+    w[getptr] = 0;
+    getptr = (getptr + 1) % CAPACITY;
+    p_proc_ready->total++;
+    v(&mutex);
 
-    p(&writer_mutex);
-    if(--writer_count == 0) {
-        v(&reader_allow_mutex);
-    }
-    v(&writer_mutex);
+    v(&warehouse);
+    consuming();     // 消费货物
 }
 
-void reader_fair(int slices) {
-    p(&writer_mutex);
-    p(&reader_mutex);
-    if(++reader_count == 1) {
-        p(&rw_mutex);
-    }
-    v(&reader_mutex);
-    v(&writer_mutex);
-
-    p(&reader_count_mutex);  // 限制读者人数
-    reading(slices);
-    v(&reader_count_mutex);
-
-    p(&reader_mutex);
-    if(--reader_count == 0) {
-        v(&rw_mutex);
-    }
-    v(&reader_mutex);
-}
-
-void writer_fair(int slices) {
-    p(&writer_mutex);
-    p(&rw_mutex);
-    writing(slices);
-    v(&rw_mutex);
-    v(&writer_mutex);
-}
-
-read_function read_funcs[3] = {reader_rf, reader_wf, reader_fair};
-write_function write_funcs[3] = {writer_rf, writer_wf, writer_fair};
+produce_function produce_funcs[2] = {produce1, produce2};
+consume_function consume_funcs[2] = {consume1, consume2};
 
 void NormalA() {
     int sequence = 0;
-    char string[2] = {'\0', '\0'};
-    char status[3] = {'\0', ' ', '\0'};
+    char string[5] = {'\0'};
     while(++sequence <= 20) {
         int2str(sequence / 10, string, 10);  // 打印序列号
         my_print(string, TEXT_DEFAULT);
@@ -255,10 +218,10 @@ void NormalA() {
         my_print(string, TEXT_DEFAULT);
         my_print(": ", TEXT_DEFAULT);
         for(int i=1; i<NR_TASKS; i++) {
-            int proc_status = (proc_table + i)->status;
-            status[0] = signs[proc_status];
-            int color = colors[proc_status];
-            my_print(status, color);
+            int num = (proc_table + i)->total;
+            int2str(num, string, 10);
+            my_print(string, TEXT_DEFAULT);
+            my_print(" ", TEXT_DEFAULT);
         }
         my_print("\n", TEXT_DEFAULT);
         milli_delay(TIME_SLICE);
@@ -266,57 +229,32 @@ void NormalA() {
     while(1);
 }
 
-void ReaderB() {
+void ProducerB() {
     while(1) {
-        // disp_str("B");
-        my_sleep(TIME_SLICE);
-        read_funcs[STRATEGY](WORKING_SLICES_B);
-        p_proc_ready->status = RELAXING;
-        my_sleep(RELAXING_SLICES * TIME_SLICE);
-        p_proc_ready->status = WAITING;
+        produce_funcs[0]();
     }
 }
 
-void ReaderC() {
+void ProducerC() {
     while(1) {
-        // disp_str("C");
-        my_sleep(TIME_SLICE);
-        read_funcs[STRATEGY](WORKING_SLICES_C);
-        p_proc_ready->status = RELAXING;
-        my_sleep(RELAXING_SLICES * TIME_SLICE);
-        p_proc_ready->status = WAITING;
+        produce_funcs[1]();
     }
 }
 
-void ReaderD() {
+void ConsumerD() {
     while(1) {
-        // disp_str("D");
-        my_sleep(TIME_SLICE);
-        read_funcs[STRATEGY](WORKING_SLICES_D);
-        p_proc_ready->status = RELAXING;
-        my_sleep(RELAXING_SLICES * TIME_SLICE);
-        p_proc_ready->status = WAITING;
+        consume_funcs[0]();
     }
 }
 
-void WriterE() {
+void ConsumerE() {
     while(1) {
-        // disp_str("E");
-        // my_sleep(TIME_SLICE);
-        write_funcs[STRATEGY](WORKING_SLICES_E);
-        p_proc_ready->status = RELAXING;
-        my_sleep(RELAXING_SLICES * TIME_SLICE);
-        p_proc_ready->status = WAITING;
+        consume_funcs[1]();
     }
 }
 
-void WriterF() {
+void ConsumerF() {
     while(1) {
-        // disp_str("F");
-        // my_sleep(TIME_SLICE);
-        write_funcs[STRATEGY](WORKING_SLICES_F);
-        p_proc_ready->status = RELAXING;
-        my_sleep(RELAXING_SLICES * TIME_SLICE);
-        p_proc_ready->status = WAITING;
+        consume_funcs[1]();
     }
 }
