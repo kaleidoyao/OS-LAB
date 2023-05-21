@@ -158,7 +158,9 @@ void reader_rf(int slices) {
     }
     v(&reader_mutex);
 
+    p(&reader_count_mutex);    // 限制读者人数
     reading(slices);
+    v(&reader_count_mutex);
 
     p(&reader_mutex);
     if(--reader_count == 0) {
@@ -173,20 +175,70 @@ void writer_rf(int slices) {
     v(&rw_mutex);
 }
 
-void reader_wf() {
+void reader_wf(int slices) {
+    p(&reader_allow_mutex);    // 判断是否可读
+    p(&reader_mutex);          // 各读进程互斥访问reader_count
+    if(++reader_count == 1) {
+        p(&rw_mutex);
+    }
+    v(&reader_mutex);
+    v(&reader_allow_mutex);
 
+    p(&reader_count_mutex);    // 限制读者人数
+    reading(slices);
+    v(&reader_count_mutex);
+
+    p(&reader_mutex);
+    if(--reader_count == 0) {
+        v(&rw_mutex);
+    }
+    v(&reader_mutex);
 }
 
-void writer_wf() {
+void writer_wf(int slices) {
+    p(&writer_mutex);          // 各写进程互斥访问writer_count
+    if(++writer_count == 1) {
+        p(&reader_allow_mutex);
+    }
+    v(&writer_mutex);
 
+    p(&rw_mutex);
+    writing(slices);
+    v(&rw_mutex);
+
+    p(&writer_mutex);
+    if(--writer_count == 0) {
+        v(&reader_allow_mutex);
+    }
+    v(&writer_mutex);
 }
 
-void reader_fair() {
+void reader_fair(int slices) {
+    p(&writer_mutex);
+    p(&reader_mutex);
+    if(++reader_count == 1) {
+        p(&rw_mutex);
+    }
+    v(&reader_mutex);
+    v(&writer_mutex);
 
+    p(&reader_count_mutex);  // 限制读者人数
+    reading(slices);
+    v(&reader_count_mutex);
+
+    p(&reader_mutex);
+    if(--reader_count == 0) {
+        v(&rw_mutex);
+    }
+    v(&reader_mutex);
 }
 
-void writer_fair() {
-
+void writer_fair(int slices) {
+    p(&writer_mutex);
+    p(&rw_mutex);
+    writing(slices);
+    v(&rw_mutex);
+    v(&writer_mutex);
 }
 
 read_function read_funcs[3] = {reader_rf, reader_wf, reader_fair};
@@ -217,6 +269,7 @@ void NormalA() {
 void ReaderB() {
     while(1) {
         // disp_str("B");
+        my_sleep(TIME_SLICE);
         read_funcs[STRATEGY](WORKING_SLICES_B);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -227,6 +280,7 @@ void ReaderB() {
 void ReaderC() {
     while(1) {
         // disp_str("C");
+        my_sleep(TIME_SLICE);
         read_funcs[STRATEGY](WORKING_SLICES_C);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -237,6 +291,7 @@ void ReaderC() {
 void ReaderD() {
     while(1) {
         // disp_str("D");
+        my_sleep(TIME_SLICE);
         read_funcs[STRATEGY](WORKING_SLICES_D);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -247,6 +302,7 @@ void ReaderD() {
 void WriterE() {
     while(1) {
         // disp_str("E");
+        // my_sleep(TIME_SLICE);
         write_funcs[STRATEGY](WORKING_SLICES_E);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -257,6 +313,7 @@ void WriterE() {
 void WriterF() {
     while(1) {
         // disp_str("F");
+        // my_sleep(TIME_SLICE);
         write_funcs[STRATEGY](WORKING_SLICES_F);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);

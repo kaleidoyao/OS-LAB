@@ -30,6 +30,10 @@ extern  TASK            task_table[];
 extern	irq_handler	irq_table[];
 
 EXTERN int reader_count;        // 读者计数器
+EXTERN int writer_count;        // 写者计数器
 
-extern SEMAPHORE rw_mutex;      // 用于实现对共享文件的互斥访问
-extern SEMAPHORE reader_mutex;  // 用于实现对读者计数器的互斥访问
+extern SEMAPHORE rw_mutex;            // 用于实现对共享文件的互斥访问
+extern SEMAPHORE reader_mutex;        // 用于实现读者之间的互斥访问
+extern SEMAPHORE writer_mutex;        // 用于实现写者之间的互斥访问
+extern SEMAPHORE reader_allow_mutex;  // 用于实现写者优先
+extern SEMAPHORE reader_count_mutex;  // 用于限制读者人数

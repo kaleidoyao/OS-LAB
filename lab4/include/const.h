@@ -80,7 +80,7 @@
 
 #define MAX_READERS       3
 
-#define RELAXING_SLICES   1
+#define RELAXING_SLICES   0
 #define WORKING_SLICES_B  2
 #define WORKING_SLICES_C  3
 #define WORKING_SLICES_D  3
