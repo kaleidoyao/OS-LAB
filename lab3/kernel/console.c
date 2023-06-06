@@ -107,6 +107,13 @@ PUBLIC void out_char(CONSOLE* p_con, char ch) {
 			if(p_con->cursor > p_con->original_addr) {
 				int prev_pos = p_con->cursor;    // 原先光标的位置
 				p_con->cursor = pop_pos(p_con);  // 删除后光标位置
+				if(mode == SEARCH_MODE) {
+					if(p_con->cursor < p_con->search_pos) {
+						push_pos(p_con, p_con->cursor);
+						p_con->cursor = prev_pos;
+						break;
+					}
+				}
 				for(int i=1; i<prev_pos-p_con->cursor+1; i++) {  // 使用空格填充
 					*(p_vmem-2*i) = ' ';
 					*(p_vmem-2*i+1) = DEFAULT_CHAR_COLOR;

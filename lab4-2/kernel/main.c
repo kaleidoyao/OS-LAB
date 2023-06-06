@@ -145,12 +145,12 @@ PUBLIC int kernel_main()
 
 void producing() {
     // 生产货物
-    my_sleep(TIME_SLICE);
+    milli_delay(TIME_SLICE);
 }
 
 void consuming() {
     // 消费货物
-    my_sleep(TIME_SLICE);
+    milli_delay(TIME_SLICE);
 }
 
 void produce1() {

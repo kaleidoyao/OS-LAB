@@ -143,12 +143,12 @@ PUBLIC int kernel_main()
 
 void reading(int slices) {
     p_proc_ready->status = WORKING;
-    my_sleep(slices * TIME_SLICE);
+    milli_delay(slices * TIME_SLICE);
 }
 
 void writing(int slices) {
     p_proc_ready->status = WORKING;
-    my_sleep(slices * TIME_SLICE);
+    milli_delay(slices * TIME_SLICE);
 }
 
 void reader_rf(int slices) {
@@ -268,8 +268,6 @@ void NormalA() {
 
 void ReaderB() {
     while(1) {
-        // disp_str("B");
-        my_sleep(TIME_SLICE);
         read_funcs[STRATEGY](WORKING_SLICES_B);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -279,8 +277,6 @@ void ReaderB() {
 
 void ReaderC() {
     while(1) {
-        // disp_str("C");
-        my_sleep(TIME_SLICE);
         read_funcs[STRATEGY](WORKING_SLICES_C);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -290,8 +286,6 @@ void ReaderC() {
 
 void ReaderD() {
     while(1) {
-        // disp_str("D");
-        my_sleep(TIME_SLICE);
         read_funcs[STRATEGY](WORKING_SLICES_D);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -301,8 +295,6 @@ void ReaderD() {
 
 void WriterE() {
     while(1) {
-        // disp_str("E");
-        // my_sleep(TIME_SLICE);
         write_funcs[STRATEGY](WORKING_SLICES_E);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
@@ -312,8 +304,6 @@ void WriterE() {
 
 void WriterF() {
     while(1) {
-        // disp_str("F");
-        // my_sleep(TIME_SLICE);
         write_funcs[STRATEGY](WORKING_SLICES_F);
         p_proc_ready->status = RELAXING;
         my_sleep(RELAXING_SLICES * TIME_SLICE);
