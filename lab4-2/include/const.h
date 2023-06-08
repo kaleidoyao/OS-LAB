@@ -78,6 +78,6 @@
 
 #define TIME_SLICE      1000
 
-# define CAPACITY       5
+# define CAPACITY       1
 
 #endif /* _ORANGES_CONST_H_ */

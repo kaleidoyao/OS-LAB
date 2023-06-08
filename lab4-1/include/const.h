@@ -91,6 +91,6 @@
 #define WRITE_FIRST     1
 #define FAIR            2
 
-#define STRATEGY READ_FIRST
+#define STRATEGY FAIR
 
 #endif /* _ORANGES_CONST_H_ */

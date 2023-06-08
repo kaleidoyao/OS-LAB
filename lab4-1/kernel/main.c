@@ -261,7 +261,7 @@ void NormalA() {
             my_print(status, color);
         }
         my_print("\n", TEXT_DEFAULT);
-        milli_delay(TIME_SLICE);
+        my_sleep(TIME_SLICE);
     }
     while(1);
 }

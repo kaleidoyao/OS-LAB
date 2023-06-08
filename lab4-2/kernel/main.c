@@ -224,7 +224,7 @@ void NormalA() {
             my_print(" ", TEXT_DEFAULT);
         }
         my_print("\n", TEXT_DEFAULT);
-        milli_delay(TIME_SLICE);
+        my_sleep(TIME_SLICE);
     }
     while(1);
 }
